@@ -1,0 +1,285 @@
+# Get Started
+
+Compile and run {fmt} examples online with [Compiler Explorer](
+https://godbolt.org/z/P7h6cd6o3).
+
+{fmt} is compatible with any build system. The next section describes its usage
+with CMake, while the [Build Systems](#build-systems) section covers the rest.
+
+## CMake
+
+{fmt} provides CMake targets: `fmt::fmt` for the standard compiled library,
+`fmt::fmt-header-only` for the header-only library, and optionally
+`fmt::fmt-module` for the C++ module library when the `FMT_MODULE` option is
+enabled. It is recommended to use the compiled library or the module library for
+improved build times. 
+
+There are three primary ways to use {fmt} with CMake:
+
+* **FetchContent**: Starting from CMake 3.11, you can use [`FetchContent`](
+  https://cmake.org/cmake/help/v3.30/module/FetchContent.html) to automatically
+  download {fmt} as a dependency at configure time:
+
+        include(FetchContent)
+
+        FetchContent_Declare(
+          fmt
+          GIT_REPOSITORY https://github.com/fmtlib/fmt
+          GIT_TAG        e69e5f977d458f2650bb346dadf2ad30c5320281) # 10.2.1
+        FetchContent_MakeAvailable(fmt)
+
+        target_link_libraries(<your-target> fmt::fmt)
+
+* **Installed**: You can find and use an [installed](#installation) version of
+  {fmt} in your `CMakeLists.txt` file as follows:
+
+        find_package(fmt)
+        target_link_libraries(<your-target> fmt::fmt)
+
+* **Embedded**: You can add the {fmt} source tree to your project and include it
+  in your `CMakeLists.txt` file:
+
+        add_subdirectory(fmt)
+        target_link_libraries(<your-target> fmt::fmt)
+
+### Alternative Targets
+
+In order to use the header-only target or the module target, simply substitute the
+`fmt::fmt` in the above steps with `fmt::fmt-header-only` or `fmt::fmt-module` 
+accordingly.
+
+### Using the C++20 Module
+
+The `fmt::fmt-module` target is only available when the `FMT_MODULE` CMake
+option is enabled. Enable it by passing `-DFMT_MODULE=ON` when configuring your
+project before adding {fmt}, or set `CMAKE_CXX_STANDARD` to at least 20 before
+adding {fmt} which will enable module support automatically when supported by
+the toolchain.
+
+Link your target to `fmt::fmt-module` and import `fmt` instead of including a
+{fmt} header:
+
+    target_link_libraries(<your-target> PRIVATE fmt::fmt-module)
+
+    import fmt;
+
+    int main() {
+      fmt::print("Hello, world!\n");
+    }
+
+When using CMake's native C++ module support, you need CMake 3.28 or newer,
+Ninja 1.11 or newer (with the Ninja generator), and GCC 15 or newer (with GCC).
+{fmt} also provides a fallback build path for other toolchains.
+
+## Embedded and Cross-Compiled Builds
+
+{fmt} can be cross-compiled with a toolchain file supplied by the target
+platform or SDK. For ARM, Rockchip, and HiSilicon toolchains, pass the vendor's
+toolchain file to CMake.
+
+This trimmed source package does not include Android or Windows build and
+packaging support. Platform-specific compatibility code may remain in shared
+library sources, but those targets are not covered by this build configuration
+or its tests.
+
+For a size-oriented build that does not need {fmt}'s OS-specific APIs:
+
+    cmake -S path/to/fmt -B build-fmt \
+      -DCMAKE_TOOLCHAIN_FILE=/path/to/arm-toolchain.cmake \
+      -DCMAKE_BUILD_TYPE=MinSizeRel \
+      -DBUILD_SHARED_LIBS=OFF \
+      -DFMT_TEST=OFF -DFMT_DOC=OFF -DFMT_MODULE=OFF \
+      -DFMT_OS=OFF -DFMT_INSTALL=OFF
+    cmake --build build-fmt
+
+Link the application to `fmt::fmt`. `FMT_OS=OFF` omits the OS-specific
+implementation in `src/os.cc`; do not use APIs from `fmt/os.h` in this
+configuration. The core formatting API remains available. `FMT_TEST`,
+`FMT_DOC`, and `FMT_MODULE` disable tests, documentation generation, and C++
+modules, respectively. Enable tests when a matching target runner or emulator
+is available.
+
+To avoid returning an allocating `std::string`, format into caller-owned
+storage with a bounded output operation such as `fmt::format_to_n`. For a
+header-only build, link `fmt::fmt-header-only`, or define `FMT_HEADER_ONLY`
+before including `<fmt/format.h>`. A minimal non-header-only integration needs
+`include/fmt/base.h`, `include/fmt/format.h`, `include/fmt/format-inl.h`, and
+`src/format.cc`.
+
+## Installation
+
+### Debian/Ubuntu
+
+To install {fmt} on Debian, Ubuntu, or any other Debian-based Linux
+distribution, use the following command:
+
+    apt install libfmt-dev
+
+### Homebrew
+
+Install {fmt} on macOS using [Homebrew](https://brew.sh/):
+
+    brew install fmt
+
+### Conda
+
+Install {fmt} on Linux and macOS with [Conda](
+https://docs.conda.io/en/latest/), using its [conda-forge package](
+https://github.com/conda-forge/fmt-feedstock):
+
+    conda install -c conda-forge fmt
+
+### Conan
+
+You can download and install {fmt} using the [Conan](https://conan.io/) package manager:
+
+    conan install -r conancenter --requires="fmt/[*]" --build=missing
+
+<!-- The {fmt} package in Conan Center is maintained by
+[ConanCenterIndex](https://github.com/conan-io/conan-center-index) community.
+If the version is out of date or the package does not work,
+please create an issue or pull request on the Conan Center Index repository. -->
+
+## Migrating from `printf`
+
+[clang-tidy](https://clang.llvm.org/extra/clang-tidy/) v18 provides the
+[modernize-use-std-print](https://clang.llvm.org/extra/clang-tidy/checks/modernize/use-std-print.html)
+check that is capable of converting occurrences of `printf` and
+`fprintf` to `fmt::print` if configured to do so. (By default it
+converts to `std::print`.)
+
+## Building from Source
+
+CMake works by generating native makefiles or project files that can be
+used in the compiler environment of your choice. The typical workflow
+starts with:
+
+    mkdir build  # Create a directory to hold the build output.
+    cd build
+    cmake ..     # Generate native build scripts.
+
+run in the `fmt` repository.
+
+If you are on a Unix-like system, you should now see a Makefile in the
+current directory. Now you can build the library by running `make`.
+
+Once the library has been built you can invoke `make test` to run the tests.
+
+You can control generation of the make `test` target with the `FMT_TEST`
+CMake option. This can be useful if you include fmt as a subdirectory in
+your project but don't want to add fmt's tests to your `test` target.
+
+To build a shared library set the `BUILD_SHARED_LIBS` CMake variable to `TRUE`:
+
+    cmake -DBUILD_SHARED_LIBS=TRUE ..
+
+To build a static library with position-independent code (e.g. for
+linking it into another shared library such as a Python extension), set the
+`CMAKE_POSITION_INDEPENDENT_CODE` CMake variable to `TRUE`:
+
+    cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE ..
+
+After building the library you can install it on a Unix-like system by
+running `sudo make install`.
+
+### Building the Docs
+
+To build the documentation you need the following software installed on
+your system:
+
+- [Python](https://www.python.org/)
+- [Doxygen](http://www.stack.nl/~dimitri/doxygen/)
+- [MkDocs](https://www.mkdocs.org/) with `mkdocs-material`, `mkdocstrings`,
+  `pymdown-extensions` and `mike`
+
+First generate makefiles or project files using CMake as described in
+the previous section. Then compile the `doc` target/project, for example:
+
+    make doc
+
+This will generate the HTML documentation in `doc/html`.
+
+## Build Systems
+
+### build2
+
+You can use [build2](https://build2.org), a dependency manager and a build
+system, to use {fmt}.
+
+Currently this package is available in these package repositories:
+
+- <https://cppget.org/fmt/> for released and published versions.
+- <https://github.com/build2-packaging/fmt> for unreleased or custom versions.
+
+**Usage:**
+
+- `build2` package name: `fmt`
+- Library target name: `lib{fmt}`
+
+To make your `build2` project depend on `fmt`:
+
+- Add one of the repositories to your configurations, or in your
+  `repositories.manifest`, if not already there:
+
+        :
+        role: prerequisite
+        location: https://pkg.cppget.org/1/stable
+
+- Add this package as a dependency to your `manifest` file (example
+  for version 10):
+
+        depends: fmt ~10.0.0
+
+- Import the target and use it as a prerequisite to your own target
+  using `fmt` in the appropriate `buildfile`:
+
+        import fmt = fmt%lib{fmt}
+        lib{mylib} : cxx{**} ... $fmt
+
+Then build your project as usual with `b` or `bdep update`.
+
+### Meson
+
+[Meson WrapDB](https://mesonbuild.com/Wrapdb-projects.html) includes an `fmt`
+package.
+
+**Usage:**
+
+- Install the `fmt` subproject from the WrapDB by running:
+
+        meson wrap install fmt
+
+  from the root of your project.
+
+- In your project's `meson.build` file, add an entry for the new subproject:
+
+        fmt = subproject('fmt')
+        fmt_dep = fmt.get_variable('fmt_dep')
+
+- Include the new dependency object to link with fmt:
+
+        my_build_target = executable(
+          'name', 'src/main.cc', dependencies: [fmt_dep])
+
+**Options:**
+
+If desired, {fmt} can be built as a static library, or as a header-only library.
+
+For a static build, use the following subproject definition:
+
+    fmt = subproject('fmt', default_options: 'default_library=static')
+    fmt_dep = fmt.get_variable('fmt_dep')
+
+For the header-only version, use:
+
+    fmt = subproject('fmt', default_options: ['header-only=true'])
+    fmt_dep = fmt.get_variable('fmt_header_only_dep')
+
+### Other
+
+To use the {fmt} library with any other build system, add
+`include/fmt/base.h`, `include/fmt/format.h`, `include/fmt/format-inl.h`,
+`src/format.cc` and optionally other headers from a [release archive](
+https://github.com/fmtlib/fmt/releases) or the [git repository](
+https://github.com/fmtlib/fmt) to your project, add `include` to include
+directories and make sure `src/format.cc` is compiled and linked with your code.
