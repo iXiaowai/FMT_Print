@@ -1,4 +1,28 @@
-This directory contains build support files such as
+用于库构建、文档和源代码维护的支持文件。
 
-* CMake modules
-* Build scripts
+## 库构建所需
+
+`cmake/` 包含当 `FMT_INSTALL` 为时使用的 CMake 包模板
+已启用。`JoinPaths.cmake` 也被根目录的 `CMakeLists.txt` 所包含
+生成pkg-config文件。
+
+## 文档构建
+
+根CMake项目使用`mkdocs.yml`和自定义的C++ API处理程序
+使用`python/mkdocstrings_handlers/`来构建文档。安装已固定的
+Python 依赖项：
+
+ 使用python执行pip安装命令，安装support/doc-requirements.txt文件中的依赖库
+
+`doc-requirements.in`文件列出了直接依赖项；`.txt`文件
+锁定它们的完整版本和哈希值。Doxygen和MkDocs也必须
+可用于CMake的“doc”目标。
+
+## 源码维护
+
+`printable.py` 重新生成嵌入在其中的 Unicode 可打印字符表
+`include/fmt/format-inl.h`。仅在更新该表时才需要它。
+
+在将库添加到某个系统或平台时，不需要这些宿主端支持文件
+嵌入式应用。可选的文档依赖和源代码
+维护脚本不是库构建的一部分。

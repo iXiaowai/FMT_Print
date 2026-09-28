@@ -13,11 +13,9 @@ theme:
 
 extra_javascript:
   - https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/highlight.min.js
-  - fmt.js
 
 extra_css:
   - https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/styles/default.min.css
-  - fmt.css
 
 markdown_extensions:
   - pymdownx.highlight:
@@ -35,10 +33,12 @@ plugins:
   - mkdocstrings:
       default_handler: cxx
 nav:
-  - Home: index.md
   - Get Started: get-started.md
   - API: api.md
   - Syntax: syntax.md
+  - 快速开始: get-started_zh.md
+  - API 文档: api_zh.md
+  - 语法: syntax_zh.md
 
 exclude_docs: ChangeLog-old.md
 

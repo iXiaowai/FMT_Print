@@ -9,8 +9,6 @@
 #
 # Modelled after Python’s os.path.join
 # https://docs.python.org/3.7/library/os.path.html#os.path.join
-# Windows not supported
-
 function (join_paths joined_path first_path_segment)
   set(temp_path "${first_path_segment}")
   foreach (current_segment IN LISTS ARGN)

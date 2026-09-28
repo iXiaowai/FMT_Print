@@ -539,7 +539,14 @@ function (add_doc_target)
   endif ()
 
   set(sources)
-  foreach (source api.md index.md syntax.md get-started.md fmt.css fmt.js)
+  foreach (
+    source
+    api.md
+    api_zh.md
+    get-started.md
+    get-started_zh.md
+    syntax.md
+    syntax_zh.md)
     set(sources ${sources} doc/${source})
   endforeach ()
 
