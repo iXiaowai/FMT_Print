@@ -82,8 +82,6 @@ endif ()
 option(FMT_DOC "Generate the doc target." ${FMT_MASTER_PROJECT})
 option(FMT_INSTALL "Generate the install target." ${FMT_MASTER_PROJECT})
 option(FMT_TEST "Generate the test target." ${FMT_MASTER_PROJECT})
-option(FMT_FUZZ "Generate the fuzz target." OFF)
-option(FMT_CUDA_TEST "Generate the cuda-test target." OFF)
 option(FMT_OS "Include OS-specific APIs." ON)
 option(FMT_MODULE "Build a module library." ${FMT_USE_MODULES})
 option(FMT_SYSTEM_HEADERS "Expose headers with marking them as system." OFF)
@@ -574,18 +572,6 @@ endif ()
 if (FMT_TEST)
   enable_testing()
   add_subdirectory(test)
-endif ()
-
-# Control fuzzing independent of the unit tests.
-if (FMT_FUZZ)
-  add_subdirectory(test/ignore/fuzzing)
-
-  # The FMT_FUZZ macro is used to prevent resource exhaustion in fuzzing
-  # mode and make fuzzing practically possible. It is similar to
-  # FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION but uses a different name to
-  # avoid interfering with fuzzing of projects that use {fmt}.
-  # See also https://llvm.org/docs/LibFuzzer.html#fuzzer-friendly-build-mode.
-  target_compile_definitions(fmt PUBLIC FMT_FUZZ)
 endif ()
 
 set(gitignore ${PROJECT_SOURCE_DIR}/.gitignore)

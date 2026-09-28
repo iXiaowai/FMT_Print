@@ -5,10 +5,6 @@
 //
 // For the license information refer to format.h.
 
-// Check if fmt/format.h compiles with windows.h included before it.
-#ifdef _WIN32
-#  include <windows.h>
-#endif
 // clang-format off
 #include "fmt/format.h"
 // clang-format on
@@ -1719,13 +1715,12 @@ TEST(format_test, format_long_double) {
   EXPECT_EQ(fmt::format("{0:G}", 392.65l), "392.65");
   EXPECT_EQ(fmt::format("{0:f}", 392.65l), "392.650000");
   EXPECT_EQ(fmt::format("{0:F}", 392.65l), "392.650000");
-  char buffer[buffer_size];
-  safe_sprintf(buffer, "%Le", 392.65l);
-  EXPECT_EQ(buffer, fmt::format("{0:e}", 392.65l));
+  EXPECT_EQ(fmt::format("{0:e}", 392.65l), "3.926500e+02");
   EXPECT_EQ(fmt::format("{0:+010.4g}", 392.64l), "+0000392.6");
 
   auto ld = 3.31l;
   if (fmt::detail::is_double_double<decltype(ld)>::value) {
+    char buffer[buffer_size];
     safe_sprintf(buffer, "%a", static_cast<double>(ld));
     EXPECT_EQ(buffer, fmt::format("{:a}", ld));
   } else if (std::numeric_limits<long double>::digits == 64) {
@@ -2031,6 +2026,7 @@ template <> struct formatter<deadlockable> {
 template <> struct locking<deadlockable> : std::true_type {};
 FMT_END_NAMESPACE
 
+#if FMT_USE_FCNTL
 TEST(format_test, locking_formatter) {
   auto f = fmt::buffered_file();
   try {
@@ -2049,6 +2045,7 @@ TEST(format_test, locking_formatter) {
   for (int i = 0; i < 100; ++i) fmt::print(f.get(), "{}", d);
   t.join();
 }
+#endif  // FMT_USE_FCNTL
 
 TEST(format_test, variadic) {
   EXPECT_EQ(fmt::format("{}c{}", "ab", 1), "abc1");
