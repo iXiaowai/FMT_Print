@@ -17,9 +17,10 @@ The {fmt} library API consists of the following components:
 - [`fmt/args.h`](#args-api): dynamic argument lists
 - [`fmt/printf.h`](#printf-api): safe `printf`
 - [`fmt/xchar.h`](#xchar-api): optional `wchar_t` support
+- [`fmt/fmt-c.h`](#c-api): a C interface for formatting and printing
 
 All functions and types provided by the library reside in namespace `fmt`
-and macros have prefix `FMT_`.
+and macros have prefix `FMT_`, except for the standalone C API.
 
 ## C++ Module API
 
@@ -732,6 +733,18 @@ if an argument type doesn't match its format specification.
 ::: fprintf(std::FILE*, string_view, const T&...)
 
 ::: sprintf(string_view, const T&...)
+
+## C API
+
+The C API is declared in `fmt/fmt-c.h` and is available through the
+`fmt::fmt-c` CMake target. It supports built-in scalar and string arguments,
+with up to 16 arguments per call. The variadic `fmt_format` and `fmt_print`
+macros are available to C11 callers; C++ callers can use `fmt_vformat` and
+`fmt_vprint` with an explicit argument array.
+
+The implementation is compiled as C++ and uses the C++ runtime. When linking
+from a C application, use the `fmt::fmt-c` target so CMake propagates the
+required library dependencies.
 
 <a id="xchar-api"></a>
 ## Wide Strings

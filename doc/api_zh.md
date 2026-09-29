@@ -16,8 +16,10 @@
 - [`fmt/args.h`](#args-api)：动态参数列表
 - [`fmt/printf.h`](#printf-api)：安全的 `printf`
 - [`fmt/xchar.h`](#xchar-api)：可选的 `wchar_t` 支持
+- [`fmt/fmt-c.h`](#c-api)：用于格式化和打印的 C 接口
 
 库提供的所有函数和类型都位于 `fmt` 命名空间中，宏均以 `FMT_` 为前缀。
+C API 是独立的 C 接口，不属于 `fmt` 命名空间。
 
 ## C++ Module API
 
@@ -637,6 +639,16 @@ https://pubs.opengroup.org/onlinepubs/009695399/functions/fprintf.html)。
 ::: printf(string_view, const T&...)
 ::: fprintf(std::FILE*, string_view, const T&...)
 ::: sprintf(string_view, const T&...)
+
+## C API
+
+C API 声明在 `fmt/fmt-c.h` 中，并通过 CMake target `fmt::fmt-c` 提供。
+它支持内置标量和字符串参数，每次调用最多 16 个参数。C11 调用方可使用
+可变参数宏 `fmt_format` 和 `fmt_print`；C++ 调用方可使用接收显式参数数组的
+`fmt_vformat` 和 `fmt_vprint`。
+
+C API 的实现使用 C++ 编译并依赖 C++ runtime。从 C 程序链接时，建议链接
+`fmt::fmt-c` target，由 CMake 传递所需的库依赖。
 
 <a id="xchar-api"></a>
 ## 宽字符串

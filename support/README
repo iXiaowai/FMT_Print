@@ -1,28 +1,25 @@
-用于库构建、文档和源代码维护的支持文件。
+# 支持文件说明
 
-## 库构建所需
+本目录存放库构建、安装、文档生成和源码维护所需的辅助文件。它们不是
+嵌入式应用运行时依赖，也不需要复制到目标设备。
 
-`cmake/` 包含当 `FMT_INSTALL` 为时使用的 CMake 包模板
-已启用。`JoinPaths.cmake` 也被根目录的 `CMakeLists.txt` 所包含
-生成pkg-config文件。
+## CMake 与安装
 
-## 文档构建
+- `cmake/JoinPaths.cmake`：根目录 `CMakeLists.txt` 使用的路径辅助函数。
+- `cmake/fmt-config.cmake.in`：生成安装后的 CMake package 配置。
+- `cmake/fmt.pc.in`、`cmake/fmt-c.pc.in`：生成 C++ 和 C API 的 pkg-config 文件。
 
-根CMake项目使用`mkdocs.yml`和自定义的C++ API处理程序
-使用`python/mkdocstrings_handlers/`来构建文档。安装已固定的
-Python 依赖项：
+## 文档
 
- 使用python执行pip安装命令，安装support/doc-requirements.txt文件中的依赖库
+- `mkdocs.yml`：文档站点、导航和 API 文档插件配置。
+- `python/mkdocstrings_handlers/`：C++ API 文档生成处理器。
+- `doc-requirements.in`：文档工具的直接 Python 依赖；`doc-requirements.txt`
+  锁定完整依赖版本和哈希。
 
-`doc-requirements.in`文件列出了直接依赖项；`.txt`文件
-锁定它们的完整版本和哈希值。Doxygen和MkDocs也必须
-可用于CMake的“doc”目标。
+构建文档还需要 Doxygen 和 MkDocs。只有开发或生成文档时才需要这些工具，
+不影响库本身的构建。
 
 ## 源码维护
 
-`printable.py` 重新生成嵌入在其中的 Unicode 可打印字符表
-`include/fmt/format-inl.h`。仅在更新该表时才需要它。
-
-在将库添加到某个系统或平台时，不需要这些宿主端支持文件
-嵌入式应用。可选的文档依赖和源代码
-维护脚本不是库构建的一部分。
+`printable.py` 用于从 Unicode 数据生成 `include/fmt/format-inl.h` 中的可打印
+字符表。它仅在更新该表时使用，不属于常规构建流程。

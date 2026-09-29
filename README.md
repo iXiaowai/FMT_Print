@@ -58,8 +58,7 @@ Try {fmt} in [Compiler Explorer](https://godbolt.org/z/8Mx1EW73v).
   and `format-inl.h`, and compiled code; see [Compile time and code
   bloat](#compile-time-and-code-bloat)
 - Reliability: the library has an extensive set of
-  [tests](https://github.com/fmtlib/fmt/tree/master/test) and is
-  [continuously fuzzed](https://bugs.chromium.org/p/oss-fuzz/issues/list?colspec=ID%20Type%20Component%20Status%20Proj%20Reported%20Owner%20Summary&q=proj%3Dfmt&can=1)
+  [core regression and embedded-configuration tests](test/Print_FMT_Test.md)
 - Safety: the library is fully type-safe, errors in format strings can
   be reported at compile time, automatic memory management prevents
   buffer overflow errors
@@ -75,6 +74,34 @@ Try {fmt} in [Compiler Explorer](https://godbolt.org/z/8Mx1EW73v).
   `FMT_HEADER_ONLY` macro
 
 See the [documentation](https://fmt.dev) for more details.
+
+## Embedded and Cross-Compiled Builds
+
+This source tree keeps the complete public formatting API. Its build and test
+configuration focuses on embedded Linux and vendor toolchains such as ARM,
+Rockchip, and HiSilicon. Dedicated Android and Windows build/package support is
+not included.
+
+For a static, size-oriented build that does not use OS-specific APIs:
+
+```sh
+cmake -S . -B build \
+  -DCMAKE_TOOLCHAIN_FILE=/path/to/arm-toolchain.cmake \
+  -DCMAKE_BUILD_TYPE=MinSizeRel \
+  -DBUILD_SHARED_LIBS=OFF \
+  -DFMT_TEST=OFF -DFMT_DOC=OFF -DFMT_MODULE=OFF \
+  -DFMT_OS=OFF -DFMT_INSTALL=OFF
+cmake --build build
+```
+
+Link applications to `fmt::fmt`. `FMT_OS=OFF` omits the implementation in
+`src/os.cc`; do not call APIs from `fmt/os.h` in that configuration. Other
+optional formatting APIs remain available. With `FMT_INSTALL=OFF`, the
+`fmt::fmt-c` target is excluded from the default build and is built when
+explicitly requested or linked; it remains available for installation when
+`FMT_INSTALL=ON`. The C++ module target is created only when `FMT_MODULE` is
+enabled. See [Get Started](doc/get-started.md) and the
+[Chinese guide](doc/get-started_zh.md) for details.
 
 # Examples
 

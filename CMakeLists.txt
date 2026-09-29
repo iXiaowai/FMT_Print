@@ -404,6 +404,9 @@ target_compile_features(fmt-header-only INTERFACE cxx_std_11)
 setup_target(fmt-header-only INTERFACE)
 
 add_library(fmt-c src/fmt-c.cc)
+if (NOT FMT_INSTALL)
+  set_target_properties(fmt-c PROPERTIES EXCLUDE_FROM_ALL TRUE)
+endif ()
 target_compile_features(fmt-c INTERFACE c_std_11)
 
 # Set FMT_C_LIB_NAME for pkg-config fmt-c.pc. We cannot use the OUTPUT_NAME

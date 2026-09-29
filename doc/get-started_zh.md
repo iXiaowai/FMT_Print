@@ -9,8 +9,12 @@
 
 {fmt} 提供以下 CMake targets：`fmt::fmt` 用于标准编译库，
 `fmt::fmt-header-only` 用于仅头文件库；启用 `FMT_MODULE` 选项后，
-还可以使用 `fmt::fmt-module` 用于 C++ module 库。推荐使用编译库或
-module 库，以获得更好的构建速度。
+还可以使用 `fmt::fmt-module` 用于 C++ module 库。`fmt::fmt-c` target
+提供 C API。推荐使用编译库或 module 库，以获得更好的构建速度。
+
+`FMT_INSTALL=OFF` 时，`fmt::fmt-c` target 不参与默认构建；显式构建该 target，
+或由其他 target 链接时才会构建对应实现。`FMT_INSTALL=ON` 时会保留默认构建，
+以确保可以安装该 target。只有启用 `FMT_MODULE` 后才会创建 C++ module target。
 
 在 CMake 中使用 {fmt} 主要有三种方式：
 
@@ -89,6 +93,10 @@ ARM、瑞芯微和海思平台可传入对应厂商的 toolchain file。
 实现；此配置下不要调用 `fmt/os.h` 中的 API。核心格式化 API 不受影响。
 `FMT_TEST`、`FMT_DOC` 和 `FMT_MODULE` 分别关闭测试、文档生成和 C++ modules；
 如果有匹配的目标运行器或模拟器，应启用测试。
+
+源码文件按构建目标分工：`src/format.cc` 实现编译版核心库，`src/os.cc`
+提供可选 OS API，`src/fmt-c.cc` 实现 C API target，`src/fmt.cc` 仅用于可选的
+C++ module target。可选 API 对应的公共头文件仍予保留。
 
 若要避免返回会分配内存的 `std::string`，可使用 `fmt::format_to_n` 等有界
 输出方式将结果写入调用方提供的缓冲区。使用仅头文件版本时，可链接
@@ -180,7 +188,7 @@ CMake 的作用是生成可以在所选编译器环境中使用的原生 makefil
 
     make doc
 
-这会在 `doc/html` 中生成 HTML 文档。
+这会在构建目录的 `doc-html/` 中生成 HTML 文档。
 
 ## 构建系统
 

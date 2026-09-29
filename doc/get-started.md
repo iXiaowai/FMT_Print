@@ -11,8 +11,13 @@ with CMake, while the [Build Systems](#build-systems) section covers the rest.
 {fmt} provides CMake targets: `fmt::fmt` for the standard compiled library,
 `fmt::fmt-header-only` for the header-only library, and optionally
 `fmt::fmt-module` for the C++ module library when the `FMT_MODULE` option is
-enabled. It is recommended to use the compiled library or the module library for
-improved build times. 
+enabled. The optional `fmt::fmt-c` target provides the C API. It is recommended
+to use the compiled library or the module library for improved build times.
+
+With `FMT_INSTALL=OFF`, `fmt::fmt-c` is excluded from the default build and is
+built when explicitly requested or linked by another target. When
+`FMT_INSTALL=ON`, it remains part of the default build so it can be installed.
+The module target is created only when `FMT_MODULE` is enabled.
 
 There are three primary ways to use {fmt} with CMake:
 
@@ -98,6 +103,11 @@ configuration. The core formatting API remains available. `FMT_TEST`,
 `FMT_DOC`, and `FMT_MODULE` disable tests, documentation generation, and C++
 modules, respectively. Enable tests when a matching target runner or emulator
 is available.
+
+The source files have separate roles: `src/format.cc` implements the compiled
+core library, `src/os.cc` provides the optional OS APIs, `src/fmt-c.cc`
+implements the C API target, and `src/fmt.cc` is used only by the optional
+C++ module target. Public headers for the optional APIs are retained.
 
 To avoid returning an allocating `std::string`, format into caller-owned
 storage with a bounded output operation such as `fmt::format_to_n`. For a
@@ -197,7 +207,8 @@ the previous section. Then compile the `doc` target/project, for example:
 
     make doc
 
-This will generate the HTML documentation in `doc/html`.
+This generates the HTML documentation in `doc-html/` under the CMake build
+directory.
 
 ## Build Systems
 
