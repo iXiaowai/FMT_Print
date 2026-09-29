@@ -1,285 +1,145 @@
-<img src="https://user-images.githubusercontent.com/576385/156254208-f5b743a9-88cf-439d-b0c0-923d53e8d551.png" alt="{fmt}" width="25%"/>
+# Print_FMT
 
-[![image](https://github.com/fmtlib/fmt/actions/workflows/linux.yml/badge.svg?branch=master)](
-https://github.com/fmtlib/fmt/actions?query=workflow%3Alinux)
-[![image](https://github.com/fmtlib/fmt/actions/workflows/macos.yml/badge.svg?branch=master)](
-https://github.com/fmtlib/fmt/actions?query=workflow%3Amacos)
-[![fmt is continuously fuzzed at oss-fuzz](https://oss-fuzz-build-logs.storage.googleapis.com/badges/fmt.svg)](
-https://issues.oss-fuzz.com/issues?q=title:fmt%20cc:victor.zverovich@gmail.com)
-[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/8880/badge)](
-https://www.bestpractices.dev/projects/8880)
-[![image](https://api.securityscorecards.dev/projects/github.com/fmtlib/fmt/badge)](
-https://securityscorecards.dev/viewer/?uri=github.com/fmtlib/fmt)
-[![Ask questions at StackOverflow with the tag fmt](
-https://img.shields.io/badge/stackoverflow-fmt-blue.svg)](https://stackoverflow.com/questions/tagged/fmt)
-[![Support Ukraine](
-https://img.shields.io/badge/Support-Ukraine-005BBB?labelColor=FFD500)](https://novaukraine.org/)
+基于 [{fmt}](https://github.com/fmtlib/fmt) 整理的 C/C++ 格式化库，面向核心
+格式化功能学习、资源受限配置和 ARM、瑞芯微、海思等嵌入式平台移植参考。
 
-**{fmt}** is an open-source formatting library providing a fast and safe
-alternative to C stdio and C++ iostreams.
+本仓库精简了上游项目的辅助构建内容和专项测试，但保留公共格式化 API。测试
+集聚焦核心格式化回归和嵌入式配置；不包含 Android、Windows 专用构建支持，
+也不覆盖颜色、OS/POSIX、C API、C++ module、CUDA、模糊测试等独立专项。
 
-[Documentation](https://fmt.dev)
+## 项目特点
 
-[Cheat Sheets](https://hackingcpp.com/cpp/libs/fmt.html)
+- CMake 构建，可按需构建静态库、仅头文件库及可选功能目标
+- 通过 `FMT_OS=OFF` 排除 OS 专项实现，保留其他格式化 API
+- 保留核心格式化、printf 兼容和资源受限配置测试
+- 提供中文 API、语法和快速入门文档
+- 核心库无第三方依赖；测试框架随仓库提供，文档生成需要独立工具链
 
-Q&A: ask questions on [StackOverflow with the tag
-fmt](https://stackoverflow.com/questions/tagged/fmt).
+## 目录结构
 
-Try {fmt} in [Compiler Explorer](https://godbolt.org/z/8Mx1EW73v).
+```text
+.
+├── CMakeLists.txt
+├── include/fmt/       公共头文件
+├── src/               编译库及可选 API 的实现
+├── test/
+│   ├── core/          核心格式化和 API 回归测试
+│   ├── embedded/      资源受限配置及性能冒烟检查
+│   └── support/       Google Test 和测试辅助代码
+├── doc/               英文和中文 API、语法及快速入门文档
+├── support/           CMake 安装模板、文档工具配置和源码维护脚本
+└── LICENSE
+```
 
-[![Live demo by Demoshell](https://build.demoshell.com/v1/embed/badge.svg)](https://build.demoshell.com/launch?snapshot=demoshell%2Ftools%3Afmt)
+主要实现文件：
 
-# Features
+| 文件 | 用途 |
+| --- | --- |
+| `src/format.cc` | 编译版核心格式化库实现 |
+| `src/os.cc` | `fmt/os.h` 的 OS 专项实现；由 `FMT_OS` 控制 |
+| `src/fmt-c.cc` | 可选 C API 实现，对应 `fmt/fmt-c.h` |
+| `src/fmt.cc` | 可选 C++ module 实现，仅在启用 `FMT_MODULE` 时使用 |
 
-- Simple [format API](https://fmt.dev/latest/api/) with positional
-  arguments for localization
-- Implementation of [C++20
-  std::format](https://en.cppreference.com/w/cpp/utility/format) and
-  [C++23 std::print](https://en.cppreference.com/w/cpp/io/print)
-- [Format string syntax](https://fmt.dev/latest/syntax/) similar
-  to Python\'s
-  [format](https://docs.python.org/3/library/stdtypes.html#str.format)
-- Fast IEEE 754 floating-point formatter with correct rounding,
-  shortness and round-trip guarantees using the
-  [Dragonbox](https://github.com/jk-jeon/dragonbox) algorithm
-- Portable Unicode support
-- Safe [printf
-  implementation](https://fmt.dev/latest/api/#printf-api)
-  including the POSIX extension for positional arguments
-- Extensibility: [support for user-defined
-  types](https://fmt.dev/latest/api/#formatting-user-defined-types)
-- High performance: faster than common standard library
-  implementations of `(s)printf`, iostreams, `to_string` and
-  `to_chars`, see [Speed tests](#speed-tests) and [Converting a
-  hundred million integers to strings per
-  second](https://vitaut.net/posts/2020/fast-int-to-string-revisited/)
-- Small code size both in terms of source code with the minimum
-  configuration consisting of just three files, `base.h`, `format.h`
-  and `format-inl.h`, and compiled code; see [Compile time and code
-  bloat](#compile-time-and-code-bloat)
-- Reliability: the library has an extensive set of
-  [core regression and embedded-configuration tests](test/Print_FMT_Test.md)
-- Safety: the library is fully type-safe, errors in format strings can
-  be reported at compile time, automatic memory management prevents
-  buffer overflow errors
-- Ease of use: small self-contained code base, no external
-  dependencies, permissive MIT
-  [license](https://github.com/fmtlib/fmt/blob/master/LICENSE)
-- [Portability](https://fmt.dev/latest/#portability) with
-  consistent output across platforms and support for older compilers
-- Clean warning-free codebase even on high warning levels such as
-  `-Wall -Wextra -pedantic`
-- Locale independence by default
-- Optional header-only configuration enabled with the
-  `FMT_HEADER_ONLY` macro
+`include/fmt/` 中的公共头文件均予保留，包括 chrono、color、ranges、OS、
+printf、C API 等可选功能头文件。裁剪专项测试或关闭某个构建目标不代表删除
+对应的公共 API。
 
-See the [documentation](https://fmt.dev) for more details.
+## 构建核心库
 
-## Embedded and Cross-Compiled Builds
-
-This source tree keeps the complete public formatting API. Its build and test
-configuration focuses on embedded Linux and vendor toolchains such as ARM,
-Rockchip, and HiSilicon. Dedicated Android and Windows build/package support is
-not included.
-
-For a static, size-oriented build that does not use OS-specific APIs:
+以下示例构建面向尺寸优化的静态核心库，并关闭文档、测试、安装、C++ module
+和 OS 专项 API：
 
 ```sh
 cmake -S . -B build \
-  -DCMAKE_TOOLCHAIN_FILE=/path/to/arm-toolchain.cmake \
   -DCMAKE_BUILD_TYPE=MinSizeRel \
   -DBUILD_SHARED_LIBS=OFF \
-  -DFMT_TEST=OFF -DFMT_DOC=OFF -DFMT_MODULE=OFF \
-  -DFMT_OS=OFF -DFMT_INSTALL=OFF
+  -DFMT_TEST=OFF \
+  -DFMT_DOC=OFF \
+  -DFMT_INSTALL=OFF \
+  -DFMT_MODULE=OFF \
+  -DFMT_OS=OFF
 cmake --build build
 ```
 
-Link applications to `fmt::fmt`. `FMT_OS=OFF` omits the implementation in
-`src/os.cc`; do not call APIs from `fmt/os.h` in that configuration. Other
-optional formatting APIs remain available. With `FMT_INSTALL=OFF`, the
-`fmt::fmt-c` target is excluded from the default build and is built when
-explicitly requested or linked; it remains available for installation when
-`FMT_INSTALL=ON`. The C++ module target is created only when `FMT_MODULE` is
-enabled. See [Get Started](doc/get-started.md) and the
-[Chinese guide](doc/get-started_zh.md) for details.
+交叉编译时，添加目标平台或 SDK 提供的 toolchain file：
 
-# Examples
+```sh
+cmake -S . -B build-arm \
+  -DCMAKE_TOOLCHAIN_FILE=/path/to/arm-toolchain.cmake \
+  -DCMAKE_BUILD_TYPE=MinSizeRel \
+  -DBUILD_SHARED_LIBS=OFF \
+  -DFMT_TEST=OFF -DFMT_DOC=OFF -DFMT_INSTALL=OFF \
+  -DFMT_MODULE=OFF -DFMT_OS=OFF
+cmake --build build-arm
+```
 
-**Print to stdout** ([run](https://godbolt.org/z/Tevcjh))
+应用使用 CMake 时链接 `fmt::fmt`。`FMT_OS=OFF` 会省略 `src/os.cc`，此时不能
+调用 `fmt/os.h` 中需要 OS 实现的 API；其他格式化 API 不受影响。更多配置和
+工具链说明见[中文快速入门](doc/get-started_zh.md)。
 
-``` c++
+## 构建和运行测试
+
+在本机或有可用模拟器/运行器的目标环境中，可构建并运行保留的核心测试：
+
+```sh
+cmake -S . -B build-test \
+  -DCMAKE_BUILD_TYPE=Debug \
+  -DFMT_TEST=ON \
+  -DFMT_DOC=OFF \
+  -DFMT_INSTALL=OFF \
+  -DFMT_MODULE=OFF \
+  -DFMT_OS=OFF
+cmake --build build-test
+ctest --test-dir build-test --output-on-failure
+```
+
+交叉编译的测试程序需要在目标设备或模拟器上运行，才能执行 CTest。测试目录和
+覆盖范围详见[测试说明](test/FMT_Test.md)。启用 `FMT_PEDANTIC=ON` 还会
+增加警告检查，以及无异常、无 locale 配置的编译检查。
+
+## 基本使用
+
+格式化为字符串：
+
+```cpp
+#include <fmt/format.h>
+
+int main() {
+  auto text = fmt::format("value = {}", 123);
+}
+```
+
+格式化并输出：
+
+```cpp
 #include <fmt/base.h>
 
 int main() {
-  fmt::print("Hello, world!\n");
+  fmt::print("Hello, {}!\n", "world");
 }
 ```
 
-**Format a string** ([run](https://godbolt.org/z/oK8h33))
+若需控制输出缓冲区或避免使用返回 `std::string` 的接口，可使用
+`fmt::format_to_n` 等输出迭代器 API，并传入调用方提供的缓冲区。
 
-``` c++
-std::string s = fmt::format("The answer is {}.", 42);
-// s == "The answer is 42."
-```
+## 文档
 
-**Format a string using positional arguments**
-([run](https://godbolt.org/z/Yn7Txe))
+- [中文快速入门](doc/get-started_zh.md)
+- [中文 API 参考](doc/api_zh.md)
+- [中文格式字符串语法](doc/syntax_zh.md)
+- [英文快速入门](doc/get-started.md)
+- [英文 API 参考](doc/api.md)
+- [英文格式字符串语法](doc/syntax.md)
 
-``` c++
-std::string s = fmt::format("I'd rather be {1} than {0}.", "right", "happy");
-// s == "I'd rather be happy than right."
-```
+本仓库通过 CMake 的 `doc` target 生成 HTML 文档；构建需要安装 Doxygen、
+MkDocs 和 `support/doc-requirements.txt` 中锁定的 Python 依赖。
+`support/mkdocs.yml` 是站点构建配置。文档生成配置和依赖不是嵌入式库的构建
+或运行依赖。
 
-**Print dates and times** ([run](https://godbolt.org/z/c31ExdY3W))
+## 上游项目与许可证
 
-``` c++
-#include <fmt/chrono.h>
+本仓库是经过整理的移植参考版本，不等同于上游 `{fmt}` 的完整测试、构建和
+发布配置。需要完整功能说明或上游最新版本时，请参阅
+[上游 `{fmt}` 项目](https://github.com/fmtlib/fmt)。
 
-int main() {
-  auto now = std::chrono::system_clock::now();
-  fmt::print("Date and time: {}\n", now);
-  fmt::print("Time: {:%H:%M}\n", now);
-}
-```
-
-Output:
-
-    Date and time: 2023-12-26 19:10:31.557195597
-    Time: 19:10
-
-**Print a container** ([run](https://godbolt.org/z/MxM1YqjE7))
-
-``` c++
-#include <vector>
-#include <fmt/ranges.h>
-
-int main() {
-  std::vector<int> v = {1, 2, 3};
-  fmt::print("{}\n", v);
-}
-```
-
-Output:
-
-    [1, 2, 3]
-
-**Check a format string at compile time**
-
-``` c++
-std::string s = fmt::format("{:d}", "I am not a number");
-```
-
-This gives a compile-time error in C++20 because `d` is an invalid
-format specifier for a string.
-
-**Write a file from a single thread**
-
-``` c++
-#include <fmt/os.h>
-
-int main() {
-  auto out = fmt::output_file("guide.txt");
-  out.print("Don't {}", "Panic");
-}
-```
-
-This can be [up to 9 times faster than `fprintf`](
-https://vitaut.net/posts/2020/optimal-file-buffer-size/).
-
-**Print with colors and text styles**
-
-``` c++
-#include <fmt/color.h>
-
-int main() {
-  fmt::print(fg(fmt::color::crimson) | fmt::emphasis::bold,
-             "Hello, {}!\n", "world");
-  fmt::print(fg(fmt::color::floral_white) | bg(fmt::color::slate_gray) |
-             fmt::emphasis::underline, "Olá, {}!\n", "Mundo");
-  fmt::print(fg(fmt::color::steel_blue) | fmt::emphasis::italic,
-             "你好{}！\n", "世界");
-}
-```
-
-Output on a modern terminal with Unicode support:
-
-![image](https://github.com/fmtlib/fmt/assets/576385/2a93c904-d6fa-4aa6-b453-2618e1c327d7)
-
-# Performance
-
-{fmt} can be tens of percent to 20–30 times faster than `sprintf` and
-iostreams, especially for numeric formatting. It minimizes dynamic memory
-allocations and can optionally [compile format strings](
-https://fmt.dev/latest/api/#compile-api) into efficient formatting code.
-
-See [format-benchmark](https://github.com/fmtlib/format-benchmark) and
-[dtoa-benchmark](https://github.com/fmtlib/dtoa-benchmark) for benchmarks
-and methodology.
-
-**Time per double (smaller is better):**
-
-[![Time per double for floating-point formatting methods](
-https://github.com/user-attachments/assets/3678bc4a-9405-489e-8ce1-ca702829cdaa)](
-https://github.com/fmtlib/dtoa-benchmark)
-
-`ostringstream` and `sprintf` are omitted because they are an order of
-magnitude slower than the other methods.
-
-## Compile time and code bloat
-
-The script [bloat-test.py][test] from [format-benchmark][bench] tests compile
-time and code bloat for nontrivial projects. It generates 100 translation units
-and uses `printf()` or its alternative five times in each to simulate a
-medium-sized project. The resulting executable size and compile time on an
-Apple M5 Max running macOS 26.6.2 with Apple Clang 21.0.0
-(clang-2100.1.1.101), taking the best of three runs, are shown in the following
-tables.
-
-[test]: https://github.com/fmtlib/format-benchmark/blob/master/bloat-test.py
-[bench]: https://github.com/fmtlib/format-benchmark
-
-**Optimized build (-O3)**
-
-| Method                   | Compile Time, s | Executable size, KiB | Stripped size, KiB |
-|--------------------------|-----------------|----------------------|--------------------|
-| printf                   |             1.6 |                   54 |                 50 |
-| IOStreams                |            25.5 |                   98 |                 84 |
-| {fmt} 12.2 (non-modular) |             5.1 |                   54 |                 50 |
-| {fmt} 12.2 (modular)     |             3.7 |                   59 |                 50 |
-| Boost Format 1.92        |            49.1 |                  517 |                317 |
-
-Modular {fmt} is faster to compile than non-modular {fmt}, and both are
-comparable to `printf` in terms of per-call binary size (within a rounding error
-on this system).
-
-**Non-optimized build**
-
-| Method                   | Compile Time, s | Executable size, KiB | Stripped size, KiB |
-|--------------------------|-----------------|----------------------|--------------------|
-| printf                   |             1.6 |                   54 |                 50 |
-| IOStreams                |            26.0 |                   88 |                 68 |
-| {fmt} 12.2 (non-modular) |             4.9 |                   87 |                 84 |
-| {fmt} 12.2 (modular)     |             3.2 |                   77 |                 68 |
-| Boost Format 1.92        |            35.7 |                  741 |                431 |
-
-`libc`, `libc++`, `libfmt`, and `libfmt-module` were linked as shared libraries
-to compare formatting function overhead only. Boost Format is header-only.
-
-# Projects using {fmt}
-
-Notable users include:
-
-- [Apple's FoundationDB](https://github.com/apple/foundationdb)
-- [Blizzard Battle.net](https://battle.net/)
-- [Ceph](https://ceph.com/)
-- [ClickHouse](https://github.com/ClickHouse/ClickHouse)
-- [Envoy](https://github.com/envoyproxy/envoy)
-- [Folly](https://github.com/facebook/folly)
-- [MariaDB](https://mariadb.org/)
-- [MongoDB](https://mongodb.com/)
-- [PyTorch](https://github.com/pytorch/pytorch)
-- [Seastar](https://seastar.io/)
-- [spdlog](https://github.com/gabime/spdlog)
-
-[Find more projects using {fmt} on GitHub](
-https://github.com/search?q=fmtlib&type=Code).
+许可证信息见 [LICENSE](LICENSE)。
